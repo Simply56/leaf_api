@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "express": "^4.21.2",
+    "multer": "^2.0.1"
+  },
+  "name": "leaf_backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "serve": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
