@@ -2,7 +2,68 @@ const express = require("express");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const { default: PlantInfo } = require("./plantInfo.model");
+
+class PlantInfo {
+    static lastID = -1;
+
+    /**
+     * @type {number} id - used to identify the plant
+     */
+    id;
+    /**
+     * @type {string} imagePath - path to the plant image
+     */
+    imagePath;
+
+    /**
+     * @type {Date | undefined} imagePath - path to the plant image
+     */
+    lastWatered;
+
+    /**
+     * @type {string} imagePath - path to the plant image
+     */
+    name;
+
+    constructor(name, id = -1) {
+        if (id > PlantInfo.lastID) {
+            PlantInfo.lastID = id - 1;
+        }
+        if (id === -1) {
+            this.id = ++PlantInfo.lastID;
+        } else {
+            this.id = id;
+        }
+
+        this.name = name;
+        this.lastWatered = undefined;
+        this.imagePath = "./static/defaultPlant.png";
+    }
+
+    /**
+     * Converts a JSON string into a PlantInfo instances using a reviver
+     * @param {string} json
+     * @returns {PlantInfo[]}
+     */
+    static fromJSON(jsonString) {
+        const result = [];
+        const array = JSON.parse(jsonString);
+        for (let index = 0; index < array.length; index++) {
+            const element = array[index];
+            const newPlant = new PlantInfo(element.name, element.id);
+
+            if (element.imagePath != null) {
+                newPlant.imagePath = element.imagePath;
+            }
+            if (element.lastWatered != null) {
+                newPlant.lastWatered = new Date(element.lastWatered);
+            }
+            result.push(newPlant);
+        }
+
+        return result;
+    }
+}
 
 const app = express();
 app.use(express.json());
@@ -24,7 +85,7 @@ const storage = multer.diskStorage({
         cb(null, IMAGES_FOLDER); // Where to save
     },
     filename: (req, file, cb) => {
-        const uniqueName = Date.now() + "-" + file.originalname;
+        const uniqueName = file.originalname;
         cb(null, uniqueName); // Save with unique filename
     },
 });
@@ -49,12 +110,6 @@ function loadPlants() {
     try {
         const data = fs.readFileSync(PLANTS_FILE, "utf8");
         const plants = PlantInfo.fromJSON(data);
-        for (let index = 0; index < plants.length; index++) {
-            const plant = plants[index];
-            if (plant.id > PlantInfo.lastID) {
-                PlantInfo.lastID = plant.id;
-            }
-        }
         return plants;
     } catch (err) {
         console.error(err);
@@ -68,9 +123,11 @@ function loadPlants() {
 function storePlants(plants) {
     fs.writeFileSync(PLANTS_FILE, JSON.stringify(plants, null, 4));
 }
-/*
-- uploadImage/:id
-*/
+
+app.get("/plants", (req, res) => {
+    const plants = loadPlants();
+    res.status(200).send(plants);
+});
 
 app.post("/plants", (req, res) => {
     const plants = loadPlants();
@@ -115,14 +172,25 @@ app.delete("/plants/:id", (req, res) => {
 });
 
 app.put("/images/:id", upload.single("image"), (req, res) => {
-    // TODO: DELETE OLD IMAGE
     if (!req.file) {
         return res.status(400).send("Invalid file type.");
     }
+    const plants = loadPlants();
+
+    const originalPath = `${IMAGES_FOLDER}/${req.file.filename}`;
+    const newPath = `${IMAGES_FOLDER}/${req.params.id}.${req.file.originalname
+        .split(".")
+        .pop()}`;
+    fs.renameSync(originalPath, newPath);
+
+    const plant = plants.find((p) => p.id == req.params.id);
+    if (plant) {
+        plant.imagePath = newPath;
+    }
+    storePlants(plants);
     res.send({
         message: "Upload successful",
-        filename: req.file.filename,
-        path: `/images/${req.file.filename}`,
+        path: newPath.slice(1),
     });
 });
 
