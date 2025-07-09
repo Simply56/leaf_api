@@ -1,6 +1,6 @@
 const express = require("express");
 const multer = require("multer");
-const path = require("path");
+const cors = require("cors"); // Import the cors middleware
 const fs = require("fs");
 
 class PlantInfo {
@@ -67,6 +67,7 @@ class PlantInfo {
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 const port = 8080;
 
@@ -190,7 +191,6 @@ app.put("/images/:id", upload.single("image"), (req, res) => {
     storePlants(plants);
     res.send({
         message: "Upload successful",
-        path: newPath.slice(1),
     });
 });
 
