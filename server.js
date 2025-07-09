@@ -150,14 +150,14 @@ app.put("/plants/:id", (req, res) => {
 
 app.put("/plants/:id/water", (req, res) => {
     const plants = loadPlants();
-    const plantIdx = plants.findIndex((p) => p.id == req.params.id);
-    if (plantIdx === -1) {
+    const plant = plants.find((p) => p.id == req.params.id);
+    if (!plant) {
         res.status(404).send("Plant not found");
         return;
     }
-    plants[plantIdx].lastWatered = new Date();
+    plant.lastWatered = new Date();
     storePlants(plants);
-    res.status(201).send("Plant created");
+    res.status(201).send("Plant watered");
 });
 
 app.delete("/plants/:id", (req, res) => {
