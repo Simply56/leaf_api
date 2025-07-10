@@ -218,6 +218,6 @@ app.get("/ping", (req, res) => {
     res.send({ uuid: "73182a69-3fdf-4b5a-900a-e5369803afbb" });
 });
 
-app.listen(port, () => {
+app.listen(port, "0.0.0.0", () => {
     console.log(`Example app listening on port ${port}`);
 });
