@@ -2,6 +2,8 @@ const express = require("express");
 const multer = require("multer");
 const cors = require("cors"); // Import the cors middleware
 const fs = require("fs");
+const tinify = require("tinify");
+tinify.key = "PJKGghx7hhZpt5TCyGXDNCKgNTKd2yMK";
 
 class PlantInfo {
     static lastID = -1;
@@ -206,6 +208,9 @@ app.put("/images/:id", upload.single("image"), (req, res) => {
     res.send({
         message: "Upload successful",
     });
+    const source = tinify.fromFile(plant.imagePath);
+    const resized = source.resize({ method: "cover", width: 500, height: 500 });
+    resized.toFile(plant.imagePath);
 });
 
 // for discovery on the lan
