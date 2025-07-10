@@ -208,6 +208,11 @@ app.put("/images/:id", upload.single("image"), (req, res) => {
     });
 });
 
+// for discovery on the lan
+app.get("/ping", (req, res) => {
+    res.send({ uuid: "73182a69-3fdf-4b5a-900a-e5369803afbb" });
+});
+
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
 });
