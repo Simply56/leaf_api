@@ -125,56 +125,70 @@ function storePlants(plants) {
     fs.writeFileSync(PLANTS_FILE, JSON.stringify(plants, null, 4));
 }
 
+// get all plants
 app.get("/plants", (req, res) => {
     const plants = loadPlants();
     res.status(200).send(plants);
 });
 
+// create plant
 app.post("/plants", (req, res) => {
     const plants = loadPlants();
     plants.push(new PlantInfo(req.body.name));
     storePlants(plants);
-    res.status(201).send("Plant created");
+    res.status(201).send({ message: "Plant created" });
 });
 
+// rename plant
 app.put("/plants/:id", (req, res) => {
     const plants = loadPlants();
     const plantIdx = plants.findIndex((p) => p.id == req.params.id);
     if (plantIdx === -1) {
-        res.status(404).send("Plant not found");
+        res.status(404).send({ message: "Plant not found" });
         return;
     }
     plants[plantIdx].name = req.body.name;
     storePlants(plants);
-    res.status(200).send("Plant updated");
+    res.status(200).send({ message: "Plant updated" });
 });
 
+// water plant
 app.put("/plants/:id/water", (req, res) => {
     const plants = loadPlants();
     const plant = plants.find((p) => p.id == req.params.id);
     if (!plant) {
-        res.status(404).send("Plant not found");
+        res.status(404).send({ message: "Plant not found" });
         return;
     }
     plant.lastWatered = new Date();
     storePlants(plants);
-    res.status(201).send("Plant watered");
+    res.status(201).send({ message: "Plant watered" });
 });
 
+// delete plant
 app.delete("/plants/:id", (req, res) => {
     const plants = loadPlants();
-    const plantIdx = plants.findIndex((p) => p.id == req.params.id);
-    if (plantIdx === -1) {
-        res.status(404).send("Plant not found");
+    const removeIdx = plants.findIndex((p) => p.id == req.params.id);
+    if (removeIdx === -1) {
+        res.status(404).send({ message: "Plant not found" });
         return;
     }
-    storePlants(plants.filter((p) => p != req.params.id));
-    res.status(200).send("Plant deleted");
+    const newPlants = [];
+    for (let index = 0; index < plants.length; index++) {
+        const plant = plants[index];
+        if (index === removeIdx) {
+            continue;
+        }
+        newPlants.push(plant);
+    }
+    storePlants(newPlants);
+    res.status(200).send({ message: "Plant deleted" });
 });
 
+// update plant image
 app.put("/images/:id", upload.single("image"), (req, res) => {
     if (!req.file) {
-        return res.status(400).send("Invalid file type.");
+        return res.status(400).send({ message: "Invalid file type." });
     }
     const plants = loadPlants();
 
