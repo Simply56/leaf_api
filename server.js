@@ -75,6 +75,11 @@ class PlantInfo {
 const app = express();
 app.use(express.json());
 app.use(cors());
+// logger middleware
+app.use((req, res, next) => {
+    console.log(req.method, req.hostname, req.path, res.statusCode);
+    next();
+});
 
 const port = 8080;
 
@@ -174,9 +179,9 @@ app.put("/plants/:id/water", (req, res) => {
         res.status(404).send({ message: "Plant not found" });
         return;
     }
-    plant.lastWatered = new Date();
-    storePlants(plants);
     res.status(201).send({ message: "Plant watered" });
+    plant.lastWatered = new Date(req.body.ISODate);
+    storePlants(plants);
 });
 
 // delete plant
@@ -198,8 +203,8 @@ app.delete("/plants/:id", (req, res) => {
         }
         newPlants.push(plant);
     }
-    res.status(200).send({ message: "Plant deleted" });
     storePlants(newPlants);
+    res.status(200).send({ message: "Plant deleted" });
 });
 
 function getRandomInt(max) {
