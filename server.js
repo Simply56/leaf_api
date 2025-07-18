@@ -75,6 +75,7 @@ const port = 8080;
 
 const IMAGES_FOLDER = "./static";
 const PLANTS_FILE = "./plants.json";
+const ORACLE_VPS_IP = "152.67.64.149";
 
 if (!fs.existsSync(IMAGES_FOLDER)) {
     fs.mkdirSync(IMAGES_FOLDER);
@@ -120,7 +121,6 @@ function loadPlants() {
 }
 
 /**
- *
  * @param {PlantInfo[]} plants
  */
 function storePlants(plants) {
@@ -131,6 +131,17 @@ function storePlants(plants) {
 app.get("/plants", (req, res) => {
     const plants = loadPlants();
     res.status(200).send(plants);
+});
+
+// get plant by id
+app.get("/plants/:id", (req, res) => {
+    const plants = loadPlants();
+    const targetPlant = plants.find((p) => p.id == req.params.id);
+    if (targetPlant == undefined) {
+        res.status(404).send({});
+        return;
+    }
+    res.status(200).send(targetPlant);
 });
 
 // create plant
@@ -187,6 +198,9 @@ app.delete("/plants/:id", (req, res) => {
     res.status(200).send({ message: "Plant deleted" });
 });
 
+function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+}
 // update plant image
 app.put("/images/:id", upload.single("image"), (req, res) => {
     if (!req.file) {
@@ -195,9 +209,9 @@ app.put("/images/:id", upload.single("image"), (req, res) => {
     const plants = loadPlants();
 
     const originalPath = `${IMAGES_FOLDER}/${req.file.filename}`;
-    const newPath = `${IMAGES_FOLDER}/${req.params.id}.${req.file.originalname
-        .split(".")
-        .pop()}`;
+    const newPath = `${IMAGES_FOLDER}/${getRandomInt(
+        1_000_000
+    )}.${req.file.originalname.split(".").pop()}`;
     fs.renameSync(originalPath, newPath);
 
     const plant = plants.find((p) => p.id == req.params.id);
@@ -207,6 +221,7 @@ app.put("/images/:id", upload.single("image"), (req, res) => {
     storePlants(plants);
     res.send({
         message: "Upload successful",
+        newPath: newPath,
     });
     const source = tinify.fromFile(plant.imagePath);
     const resized = source.resize({ method: "cover", width: 500, height: 500 });
@@ -219,5 +234,5 @@ app.get("/ping", (req, res) => {
 });
 
 app.listen(port, "0.0.0.0", () => {
-    console.log(`Example app listening on port ${port}`);
+    console.log(`Exampe app listening on port ${port}`);
 });
