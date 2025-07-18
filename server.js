@@ -138,7 +138,7 @@ app.get("/plants/:id", (req, res) => {
     const plants = loadPlants();
     const targetPlant = plants.find((p) => p.id == req.params.id);
     if (targetPlant == undefined) {
-        res.status(404).send({});
+        res.status(404).send({ message: "Plant not found" });
         return;
     }
     res.status(200).send(targetPlant);
