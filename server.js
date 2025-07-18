@@ -5,6 +5,11 @@ const fs = require("fs");
 const tinify = require("tinify");
 tinify.key = "PJKGghx7hhZpt5TCyGXDNCKgNTKd2yMK";
 
+const IMAGES_FOLDER = "./static";
+const PLANTS_FILE = "./plants.json";
+const ORACLE_VPS_IP = "152.67.64.149";
+const DEFAULT_IMAGE_PATH = IMAGES_FOLDER + "/defaultPlant.png";
+
 class PlantInfo {
     static lastID = -1;
 
@@ -39,7 +44,7 @@ class PlantInfo {
 
         this.name = name;
         this.lastWatered = undefined;
-        this.imagePath = "./static/defaultPlant.png";
+        this.imagePath = DEFAULT_IMAGE_PATH;
     }
 
     /**
@@ -72,10 +77,6 @@ app.use(express.json());
 app.use(cors());
 
 const port = 8080;
-
-const IMAGES_FOLDER = "./static";
-const PLANTS_FILE = "./plants.json";
-const ORACLE_VPS_IP = "152.67.64.149";
 
 if (!fs.existsSync(IMAGES_FOLDER)) {
     fs.mkdirSync(IMAGES_FOLDER);
@@ -186,6 +187,9 @@ app.delete("/plants/:id", (req, res) => {
         res.status(404).send({ message: "Plant not found" });
         return;
     }
+    if (plants[removeIdx].imagePath !== DEFAULT_IMAGE_PATH) {
+        fs.unlinkSync(plants[removeIdx].imagePath);
+    }
     const newPlants = [];
     for (let index = 0; index < plants.length; index++) {
         const plant = plants[index];
@@ -194,8 +198,8 @@ app.delete("/plants/:id", (req, res) => {
         }
         newPlants.push(plant);
     }
-    storePlants(newPlants);
     res.status(200).send({ message: "Plant deleted" });
+    storePlants(newPlants);
 });
 
 function getRandomInt(max) {
