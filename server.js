@@ -11,8 +11,6 @@ const ORACLE_VPS_IP = "152.67.64.149";
 const DEFAULT_IMAGE_PATH = IMAGES_FOLDER + "/defaultPlant.png";
 
 class PlantInfo {
-    static lastID = -1;
-
     /**
      * @type {number} id - used to identify the plant
      */
@@ -32,38 +30,59 @@ class PlantInfo {
      */
     name;
 
-    constructor(name, id = -1) {
-        if (id > PlantInfo.lastID) {
-            PlantInfo.lastID = id - 1;
-        }
-        if (id === -1) {
-            this.id = ++PlantInfo.lastID;
-        } else {
-            this.id = id;
+    /**
+     *
+     * @param {Object} plainPlant
+     * @param {string} name
+     */
+    constructor(plainPlant = undefined, name = undefined) {
+        // XOR - exactly one must be defined
+        if (xor(plainPlant == undefined, name == undefined)) {
+            if (name != undefined) {
+                // Creating a brand new plant with a new id
+                const plants = loadPlants();
+                this.id =
+                    plants.reduce(
+                        (prevMax, plant) => Math.max(prevMax, plant.id),
+                        0
+                    ) + 1;
+
+                this.name = name;
+                this.lastWatered = undefined;
+                this.imagePath = DEFAULT_IMAGE_PATH;
+                return this;
+            }
+            // Reconstructing a plant from JSON
+            if (plainPlant != undefined) {
+                this.id = plainPlant.id;
+                this.name = plainPlant.name;
+                this.lastWatered = plainPlant.lastWatered;
+                this.imagePath = plainPlant.imagePath;
+                return this;
+            }
         }
 
-        this.name = name;
-        this.lastWatered = undefined;
-        this.imagePath = DEFAULT_IMAGE_PATH;
+        throw new Error("one argument must be defined when creting plant");
     }
 
     /**
      * Converts a JSON string into a PlantInfo instances using a reviver
-     * @param {string} json
+     * @param {string} jsonString
      * @returns {PlantInfo[]}
      */
     static fromJSON(jsonString) {
         const result = [];
-        const array = JSON.parse(jsonString);
-        for (let index = 0; index < array.length; index++) {
-            const element = array[index];
-            const newPlant = new PlantInfo(element.name, element.id);
+        const plainPlants = JSON.parse(jsonString);
+        for (let index = 0; index < plainPlants.length; index++) {
+            const plainPlant = plainPlants[index];
+            const newPlant = new PlantInfo(plainPlant);
+            // console.log("from Json:", newPlant);
 
-            if (element.imagePath != null) {
-                newPlant.imagePath = element.imagePath;
+            if (plainPlant.imagePath != null) {
+                newPlant.imagePath = plainPlant.imagePath;
             }
-            if (element.lastWatered != null) {
-                newPlant.lastWatered = new Date(element.lastWatered);
+            if (plainPlant.lastWatered != null) {
+                newPlant.lastWatered = new Date(plainPlant.lastWatered);
             }
             result.push(newPlant);
         }
@@ -77,7 +96,7 @@ app.use(express.json());
 app.use(cors());
 // logger middleware
 app.use((req, res, next) => {
-    console.log(req.method, req.hostname, req.path, res.statusCode);
+    console.log(req.method, req.path, res.statusCode);
     next();
 });
 
@@ -124,6 +143,7 @@ function loadPlants() {
     } catch (err) {
         console.error(err);
     }
+    return [];
 }
 
 /**
@@ -153,7 +173,8 @@ app.get("/plants/:id", (req, res) => {
 // create plant
 app.post("/plants", (req, res) => {
     const plants = loadPlants();
-    plants.push(new PlantInfo(req.body.name));
+    plants.push(new PlantInfo(undefined, req.body.name));
+    // console.log("new Plant:", plants[plants.length - 1]);
     storePlants(plants);
     res.status(201).send({ message: "Plant created" });
 });
@@ -245,3 +266,13 @@ app.get("/ping", (req, res) => {
 app.listen(port, "0.0.0.0", () => {
     console.log(`Exampe app listening on port ${port}`);
 });
+
+// utils
+/**
+ *
+ * @param {boolean} a
+ * @param {boolean} b
+ */
+function xor(a, b) {
+    return (a && !b) || (!a && b);
+}
