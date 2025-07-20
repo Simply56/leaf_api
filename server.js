@@ -228,9 +228,6 @@ app.delete("/plants/:id", (req, res) => {
     res.status(200).send({ message: "Plant deleted" });
 });
 
-function getRandomInt(max) {
-    return Math.floor(Math.random() * max);
-}
 // update plant image
 app.put("/images/:id", upload.single("image"), (req, res) => {
     if (!req.file) {
@@ -275,4 +272,12 @@ app.listen(port, "0.0.0.0", () => {
  */
 function xor(a, b) {
     return (a && !b) || (!a && b);
+}
+
+/**
+ *
+ * @param {number} max
+ */
+function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
 }
