@@ -2,13 +2,17 @@ const express = require("express");
 const multer = require("multer");
 const cors = require("cors"); // Import the cors middleware
 const fs = require("fs");
+const https = require("https");
+const path = require("path");
+
 const tinify = require("tinify");
 tinify.key = "PJKGghx7hhZpt5TCyGXDNCKgNTKd2yMK";
 
+const port = 8080;
 const IMAGES_FOLDER = "./static";
 const PLANTS_FILE = "./plants.json";
 const ORACLE_VPS_IP = "152.67.64.149";
-const DEFAULT_IMAGE_PATH = IMAGES_FOLDER + "/defaultPlant.png";
+const DEFAULT_IMAGE_PATH = path.join(IMAGES_FOLDER, "/defaultPlant.png");
 
 class PlantInfo {
     /**
@@ -99,8 +103,6 @@ app.use((req, res, next) => {
     console.log(req.method, req.path, res.statusCode);
     next();
 });
-
-const port = 8080;
 
 if (!fs.existsSync(IMAGES_FOLDER)) {
     fs.mkdirSync(IMAGES_FOLDER);
@@ -260,10 +262,14 @@ app.get("/ping", (req, res) => {
     res.send({ uuid: "73182a69-3fdf-4b5a-900a-e5369803afbb" });
 });
 
-app.listen(port, "0.0.0.0", () => {
-    console.log(`Exampe app listening on port ${port}`);
+const options = {
+    key: fs.readFileSync(path.join(__dirname, "localhost-key.pem")),
+    cert: fs.readFileSync(path.join(__dirname, "localhost.pem")),
+};
+const server = https.createServer(options, app);
+server.listen(port, "0.0.0.0", () => {
+    console.log(`App listening on https://localhost:${port}`);
 });
-
 // utils
 /**
  *
