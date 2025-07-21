@@ -35,7 +35,6 @@ class PlantInfo {
     name;
 
     /**
-     *
      * @param {Object} plainPlant
      * @param {string} name
      */
@@ -45,11 +44,10 @@ class PlantInfo {
             if (name != undefined) {
                 // Creating a brand new plant with a new id
                 const plants = loadPlants();
-                this.id =
-                    plants.reduce(
-                        (prevMax, plant) => Math.max(prevMax, plant.id),
-                        0
-                    ) + 1;
+                this.id = plants.reduce(
+                    (prevMax, plant) => Math.max(prevMax, plant.id),
+                    0,
+                ) + 1;
 
                 this.name = name;
                 this.lastWatered = undefined;
@@ -239,8 +237,9 @@ app.put("/images/:id", upload.single("image"), (req, res) => {
 
     const originalPath = `${IMAGES_FOLDER}/${req.file.filename}`;
     const newPath = `${IMAGES_FOLDER}/${getRandomInt(
-        1_000_000
-    )}.${req.file.originalname.split(".").pop()}`;
+        1_000_000,
+    )
+        }.${req.file.originalname.split(".").pop()}`;
     fs.renameSync(originalPath, newPath);
 
     const plant = plants.find((p) => p.id == req.params.id);
@@ -268,11 +267,12 @@ const options = {
 };
 const server = https.createServer(options, app);
 server.listen(port, "0.0.0.0", () => {
-    console.log(`App listening on https://localhost:${port}`);
+    console.log(
+        `App listening on https://localhost:${port} and https://${ORACLE_VPS_IP}:${port}`,
+    );
 });
 // utils
 /**
- *
  * @param {boolean} a
  * @param {boolean} b
  */
@@ -281,7 +281,6 @@ function xor(a, b) {
 }
 
 /**
- *
  * @param {number} max
  */
 function getRandomInt(max) {
