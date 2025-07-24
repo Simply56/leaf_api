@@ -107,12 +107,12 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
     // Store the original res.json method
     const originalJson = res.json;
-    if (!JSON.stringify(body).includes("imagePath")) {
-        return originalJson.call(this, body);
-    }
 
     // Override res.json to modify the response
     res.json = function (body) {
+        if (!JSON.stringify(body).includes("imagePath")) {
+            return originalJson.call(this, body);
+        }
         // Deep traverse and modify imagePath properties
         const modifiedBody = deepModifyImagePath(body);
 
