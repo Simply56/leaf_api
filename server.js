@@ -43,10 +43,11 @@ class PlantInfo {
             if (name != undefined) {
                 // Creating a brand new plant with a new id
                 const plants = loadPlants();
-                this.id = plants.reduce(
-                    (prevMax, plant) => Math.max(prevMax, plant.id),
-                    0,
-                ) + 1;
+                this.id =
+                    plants.reduce(
+                        (prevMax, plant) => Math.max(prevMax, plant.id),
+                        0
+                    ) + 1;
 
                 this.name = name;
                 this.lastWatered = undefined;
@@ -236,9 +237,8 @@ app.put("/images/:id", upload.single("image"), (req, res) => {
 
     const originalPath = `${IMAGES_FOLDER}/${req.file.filename}`;
     const newPath = `${IMAGES_FOLDER}/${getRandomInt(
-        1_000_000,
-    )
-        }.${req.file.originalname.split(".").pop()}`;
+        1_000_000
+    )}.${req.file.originalname.split(".").pop()}`;
     fs.renameSync(originalPath, newPath);
 
     const plant = plants.find((p) => p.id == req.params.id);
@@ -262,12 +262,9 @@ app.get("/ping", (req, res) => {
 
 app.listen(port, "0.0.0.0", () => {
     console.log(
-        `App listening on http://localhost:${port} and http://${ORACLE_VPS_IP}:${port}`,
+        `App listening on http://localhost:${port} and http://${ORACLE_VPS_IP}:${port}`
     );
 });
-
-
-
 
 // utils
 /**
