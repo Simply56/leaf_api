@@ -63,7 +63,9 @@ class PlantInfo {
             return this;
         }
 
-        throw new Error("Exactly one argument must be defined when creting plant");
+        throw new Error(
+            "Exactly one argument must be defined when creting plant"
+        );
     }
 
     /**
@@ -105,16 +107,19 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
     // Store the original res.json method
     const originalJson = res.json;
-    
+    if (!JSON.stringify(body).includes("imagePath")) {
+        return originalJson.call(this, body);
+    }
+
     // Override res.json to modify the response
-    res.json = function(body) {
+    res.json = function (body) {
         // Deep traverse and modify imagePath properties
         const modifiedBody = deepModifyImagePath(body);
-        
+
         // Call the original res.json with modified body
         return originalJson.call(this, modifiedBody);
     };
-    
+
     next();
 });
 
@@ -123,18 +128,22 @@ function deepModifyImagePath(obj) {
     if (obj === null || obj === undefined) {
         return obj;
     }
-    
+
     // Handle arrays
     if (Array.isArray(obj)) {
-        return obj.map(item => deepModifyImagePath(item));
+        return obj.map((item) => deepModifyImagePath(item));
     }
-    
+
     // Handle objects
-    if (typeof obj === 'object') {
+    if (typeof obj === "object") {
         const result = {};
-        
+
         for (const [key, value] of Object.entries(obj)) {
-            if (key === 'imagePath' && typeof value === 'string' && value.length > 0) {
+            if (
+                key === "imagePath" &&
+                typeof value === "string" &&
+                value.length > 0
+            ) {
                 // Remove the first character from imagePath
                 result[key] = value.substring(1);
             } else {
@@ -142,10 +151,10 @@ function deepModifyImagePath(obj) {
                 result[key] = deepModifyImagePath(value);
             }
         }
-        
+
         return result;
     }
-    
+
     // Return primitive values as-is
     return obj;
 }
