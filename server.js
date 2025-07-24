@@ -300,7 +300,9 @@ app.put("/images/:id", upload.single("image"), (req, res) => {
 
     const plant = plants.find((p) => p.id == req.params.id);
     if (plant) {
-        plant.imagePath = newPath.slice();
+        plant.imagePath = newPath
+    }else{
+        res.statusCode(404).send({message: "Plant not found"})
     }
     storePlants(plants);
     res.send({
