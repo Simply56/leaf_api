@@ -39,7 +39,7 @@ class PlantInfo {
      */
     constructor(plainPlant = undefined, name = undefined) {
         // XOR - exactly one must be defined
-        if (xor(plainPlant == undefined, name == undefined)) {
+        if (xor(plainPlant != undefined, name != undefined)) {
             if (name != undefined) {
                 // Creating a brand new plant with a new id
                 const plants = loadPlants();
@@ -52,7 +52,6 @@ class PlantInfo {
                 this.name = name;
                 this.lastWatered = undefined;
                 this.imagePath = DEFAULT_IMAGE_PATH;
-                return this;
             }
             // Reconstructing a plant from JSON
             if (plainPlant != undefined) {
@@ -60,11 +59,11 @@ class PlantInfo {
                 this.name = plainPlant.name;
                 this.lastWatered = plainPlant.lastWatered;
                 this.imagePath = plainPlant.imagePath;
-                return this;
             }
+            return this;
         }
 
-        throw new Error("one argument must be defined when creting plant");
+        throw new Error("Exactly one argument must be defined when creting plant");
     }
 
     /**
@@ -101,6 +100,55 @@ app.use((req, res, next) => {
     console.log(req.method, req.path, res.statusCode);
     next();
 });
+
+// removes leading dot from imagePath middleware
+app.use((req, res, next) => {
+    // Store the original res.json method
+    const originalJson = res.json;
+    
+    // Override res.json to modify the response
+    res.json = function(body) {
+        // Deep traverse and modify imagePath properties
+        const modifiedBody = deepModifyImagePath(body);
+        
+        // Call the original res.json with modified body
+        return originalJson.call(this, modifiedBody);
+    };
+    
+    next();
+});
+
+function deepModifyImagePath(obj) {
+    // Handle null or undefined
+    if (obj === null || obj === undefined) {
+        return obj;
+    }
+    
+    // Handle arrays
+    if (Array.isArray(obj)) {
+        return obj.map(item => deepModifyImagePath(item));
+    }
+    
+    // Handle objects
+    if (typeof obj === 'object') {
+        const result = {};
+        
+        for (const [key, value] of Object.entries(obj)) {
+            if (key === 'imagePath' && typeof value === 'string' && value.length > 0) {
+                // Remove the first character from imagePath
+                result[key] = value.substring(1);
+            } else {
+                // Recursively process nested objects/arrays
+                result[key] = deepModifyImagePath(value);
+            }
+        }
+        
+        return result;
+    }
+    
+    // Return primitive values as-is
+    return obj;
+}
 
 if (!fs.existsSync(IMAGES_FOLDER)) {
     fs.mkdirSync(IMAGES_FOLDER);
@@ -243,7 +291,7 @@ app.put("/images/:id", upload.single("image"), (req, res) => {
 
     const plant = plants.find((p) => p.id == req.params.id);
     if (plant) {
-        plant.imagePath = newPath;
+        plant.imagePath = newPath.slice();
     }
     storePlants(plants);
     res.send({
