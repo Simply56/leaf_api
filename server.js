@@ -1,14 +1,13 @@
 const express = require("express");
 const multer = require("multer");
-const cors = require("cors"); // Import the cors middleware
+const cors = require("cors");
 const fs = require("fs");
-const https = require("https");
 const path = require("path");
 
 const tinify = require("tinify");
 tinify.key = "PJKGghx7hhZpt5TCyGXDNCKgNTKd2yMK";
 
-const port = 8080;
+const port = 5000;
 const IMAGES_FOLDER = "./static";
 const PLANTS_FILE = "./plants.json";
 const ORACLE_VPS_IP = "152.67.64.149";
@@ -261,16 +260,15 @@ app.get("/ping", (req, res) => {
     res.send({ uuid: "73182a69-3fdf-4b5a-900a-e5369803afbb" });
 });
 
-const options = {
-    key: fs.readFileSync(path.join(__dirname, "localhost-key.pem")),
-    cert: fs.readFileSync(path.join(__dirname, "localhost.pem")),
-};
-const server = https.createServer(options, app);
-server.listen(port, "0.0.0.0", () => {
+app.listen(port, "0.0.0.0", () => {
     console.log(
-        `App listening on https://localhost:${port} and https://${ORACLE_VPS_IP}:${port}`,
+        `App listening on http://localhost:${port} and http://${ORACLE_VPS_IP}:${port}`,
     );
 });
+
+
+
+
 // utils
 /**
  * @param {boolean} a
