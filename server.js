@@ -3,6 +3,7 @@ const multer = require("multer");
 const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
+const morgan = require("morgan");
 
 const tinify = require("tinify");
 tinify.key = "PJKGghx7hhZpt5TCyGXDNCKgNTKd2yMK";
@@ -98,11 +99,7 @@ class PlantInfo {
 const app = express();
 app.use(express.json());
 app.use(cors());
-// logger middleware
-app.use((req, res, next) => {
-    console.log(req.method, req.path, res.statusCode);
-    next();
-});
+app.use(morgan("combined"));
 
 // removes leading dot from imagePath middleware
 app.use((req, res, next) => {
