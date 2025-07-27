@@ -17,21 +17,21 @@ console.log(DEFAULT_IMAGE_PATH);
 
 class PlantInfo {
     /**
-     * @type {number} id - used to identify the plant
+     * @type {number}
      */
     id;
     /**
-     * @type {string} imagePath - path to the plant image
+     * @type {string}
      */
     imagePath;
 
     /**
-     * @type {Date | undefined} imagePath - path to the plant image
+     * @type {Date | undefined}
      */
     lastWatered;
 
     /**
-     * @type {string} imagePath - path to the plant image
+     * @type {string}
      */
     name;
 
